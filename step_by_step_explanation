@@ -1,0 +1,72 @@
+Sure, let's break down each line of code:
+
+python
+import numpy as np
+import os
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from keras.applications import EfficientNetB0
+from keras.models import Model
+from keras.layers import GlobalAveragePooling2D
+from keras.preprocessing import image
+
+- These lines import necessary libraries and modules such as NumPy for numerical computations, os for interacting with the operating system, scikit-learn for machine learning algorithms, Keras for deep learning models and preprocessing images.
+
+python
+def load_images(directory):
+    images = []
+    labels = []
+    for label, category in enumerate(os.listdir(directory)):
+        category_path = os.path.join(directory, category)
+        for filename in os.listdir(category_path):
+            img = image.load_img(os.path.join(category_path, filename), target_size=(224, 224))
+            img_array = image.img_to_array(img)
+            img_array = np.expand_dims(img_array, axis=0)
+            img_array = img_array / 255.0
+            images.append(img_array)
+            labels.append(label)
+    return np.vstack(images), np.array(labels)
+
+- This function load_images loads images from the specified directory, resizes them to 224x224 pixels, converts them to arrays, and normalizes them. It returns a tuple of images and their corresponding labels.
+
+python
+image_directory = r"C:\Users\Y HARSHITHA\Desktop\PROJECT\myenv\brain_mri_scan_images"
+images, labels = load_images(image_directory)
+
+- This line specifies the directory containing the images and calls the load_images function to load the images and their labels.
+
+python
+base_model = EfficientNetB0(weights='imagenet', include_top=False, input_shape= (224,224,3))
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+feature_extractor = Model(inputs=base_model.input, outputs=x)
+
+- Here, an EfficientNetB0 model pre-trained on ImageNet is loaded without the top layer. A GlobalAveragePooling2D layer is added to the output of the base model, and a new model feature_extractor is created.
+
+python
+features = feature_extractor.predict(images)
+
+- This line extracts features from the loaded images using the feature_extractor model.
+
+python
+X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+
+- It splits the features and labels into training and testing sets using a 80-20 split.
+
+python
+rf_classifier = RandomForestClassifier(random_state=42)
+rf_classifier.fit(X_train, y_train)
+y_pred = rf_classifier.predict(X_test)
+
+- A Random Forest classifier is initialized, trained on the training data, and used to make predictions on the testing data.
+
+python
+from sklearn.metrics import accuracy_score
+print("Accuracy score of random forest model is",accuracy_score(y_test,y_pred)*100)
+
+- The accuracy score of the Random Forest classifier is printed.
+
+The rest of the code follows similar patterns for other classifiers, image preprocessing, prediction, and creating a Streamlit app. Let me know if you need further explanations!
